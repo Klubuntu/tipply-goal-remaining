@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 permissions:
   contents: write
 
@@ -90,17 +93,20 @@ jobs:
       - name: Package Windows artifacts (executables only)
         shell: powershell
         run: |
-          New-Item -ItemType Directory -Force -Path release | Out-Null
+          $releaseDir = Join-Path $Env:GITHUB_WORKSPACE 'release'
+          New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
           Get-ChildItem -Path app/dist -Filter 'tipply-gr-win-*' | ForEach-Object {
             $f = $_.FullName
             $base = $_.Name
-            $dest = Join-Path 'release' $base
+            $dest = Join-Path $releaseDir $base
             New-Item -ItemType Directory -Force -Path $dest | Out-Null
             Copy-Item -Path $f -Destination $dest
-            $zip = Join-Path 'release' ($base + '.zip')
+            $zip = Join-Path $releaseDir ($base + '.zip')
             if (Test-Path $zip) { Remove-Item $zip }
             Compress-Archive -Path (Join-Path $dest '*') -DestinationPath $zip
           }
+          Write-Host 'Created Windows release files:'
+          Get-ChildItem -Path $releaseDir -Filter '*.zip' -Recurse | ForEach-Object { Write-Host $_.FullName }
       - uses: actions/upload-artifact@v4
         with:
           name: tipply-gr-windows
