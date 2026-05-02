@@ -1,6 +1,5 @@
 {
   "goalUrl": "https://widgets.tipply.pl/TIPS_GOAL/deddfa7c-b8ab-4655-bda1-4f5063b87568/GOAL/cb3003b8-4743-45e6-9897-eda85de8442c",
   "refreshIntervalSeconds": 10,
-  "theme": "dark",
-  "clean": true
+  "theme": "dark"
 }
