@@ -171,9 +171,20 @@ jobs:
 
       - name: Update release body
         run: |
+          VERSION=${TAG#v}
           CHANGELOG=""
+          
           if [ -f "changelog.txt" ]; then
-            CHANGELOG=$(cat changelog.txt)
+            CHANGELOG=$(awk -v ver="$VERSION" '
+              /^## \[/{
+                if(found) exit
+                if($0 ~ "\\[" ver "\\]") {
+                  found=1
+                  next
+                }
+              }
+              found
+            ' changelog.txt)
           fi
           
           NOTES=$(printf "Release %s\n\nBuild & Setup links:\n\nBuild: https://github.com/%s/blob/main/README.md#build\nSetup: https://github.com/%s/blob/main/README.md#setup\nThemes: https://github.com/%s/blob/main/README.md#themes\n\n## Changelog\n\n%s" "${TAG}" "${GITHUB_REPOSITORY}" "${GITHUB_REPOSITORY}" "${GITHUB_REPOSITORY}" "${CHANGELOG}")
