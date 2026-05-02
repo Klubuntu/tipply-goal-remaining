@@ -1,0 +1,78 @@
+/* colors.css - Theme colors for Tipply Goal Widget */
+
+body {
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Purple theme */
+body.purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Dark theme (default) */
+body.dark {
+  background: linear-gradient(135deg, #111318 0%, #1f2733 100%);
+  color: #fff;
+}
+
+/* Transparent theme */
+body.transparent {
+  background: transparent;
+  color: #000;
+}
+
+body.transparent .container {
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
+}
+
+body.transparent .progress-text,
+body.transparent .remaining,
+body.transparent .title {
+  color: #000;
+}
+
+/* Blue theme */
+body.blue {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
+/* Green theme */
+body.green {
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+}
+
+/* Red theme */
+body.red {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+/* Minimal theme */
+body.minimal {
+  background: #000;
+  color: #fff;
+}
+
+body.minimal .container {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+/* Fallback for invalid or unknown theme */
+body:not(.purple):not(.dark):not(.transparent):not(.blue):not(.green):not(.red):not(.minimal) {
+  background: #000;
+  color: #fff;
+}
+
+/* Box style for non-transparent themes */
+body:not(.transparent) .container {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+}

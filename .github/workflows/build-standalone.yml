@@ -1,0 +1,66 @@
+name: Build Standalone
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    name: Build macOS x64 + arm64
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: npm install -g pnpm
+      - run: pnpm install
+        working-directory: app
+      - run: pnpm run build:macos
+        working-directory: app
+      - run: pnpm run build:macos-arm64
+        working-directory: app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tipply-gr-macos
+          path: app/dist/tipply-gr-macos-*
+
+  build-linux:
+    name: Build Linux x64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: npm install -g pnpm
+      - run: pnpm install
+        working-directory: app
+      - run: pnpm run build:linux
+        working-directory: app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tipply-gr-linux
+          path: app/dist/tipply-gr-linux-*
+
+  build-windows:
+    name: Build Windows x64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: npm install -g pnpm
+      - run: pnpm install
+        working-directory: app
+      - run: pnpm run build:windows
+        working-directory: app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tipply-gr-windows
+          path: app/dist/tipply-gr-win-*

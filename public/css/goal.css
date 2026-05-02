@@ -1,0 +1,86 @@
+/* goal.css - Common styles for Tipply Goal Widget */
+@import url('./fonts.css');
+
+.container {
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.progress-container {
+  position: relative;
+  margin: 20px 0;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+body.dark .progress-fill {
+  background: linear-gradient(90deg, #6d8bd7, #3b4a7e);
+}
+
+body.purple .progress-fill {
+  background: linear-gradient(90deg, #ff7fa1, #6ae1cc);
+}
+
+body.blue .progress-fill {
+  background: linear-gradient(90deg, #75d0ff, #2e8fd9);
+}
+
+body.green .progress-fill {
+  background: linear-gradient(90deg, #a5ff8f, #36b74d);
+}
+
+body.red .progress-fill {
+  background: linear-gradient(90deg, #ff8f8f, #c1291d);
+}
+
+body.transparent .progress-fill {
+  background: linear-gradient(90deg, #2f8d78, #ff6868);
+}
+
+body.minimal .progress-fill {
+  background: linear-gradient(90deg, #ffffff, #22c55e);
+}
+
+body:not(.purple):not(.dark):not(.transparent):not(.blue):not(.green):not(.red):not(.minimal) .progress-fill {
+  background: linear-gradient(90deg, #ffffff, #22c55e);
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.remaining {
+  font-size: 18px;
+  margin-top: 20px;
+  opacity: 0.9;
+}

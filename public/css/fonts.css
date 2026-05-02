@@ -1,0 +1,14 @@
+/* fonts.css - define custom fonts for the widget */
+/* Add font files to public/fonts/ and configure them here. */
+
+@font-face {
+  font-family: 'Tipply Sans';
+  src: url('/fonts/TipplySans.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: 'Tipply Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
