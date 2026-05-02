@@ -138,7 +138,9 @@ jobs:
           tag_name: ${{ env.TAG }}
           name: ${{ env.TAG }}
           files: |
-            artifacts/**
+            artifacts/tipply-gr-macos/*.zip
+            artifacts/tipply-gr-linux/*.zip
+            artifacts/tipply-gr-windows/*.zip
           draft: false
           prerelease: false
         env:
@@ -146,7 +148,8 @@ jobs:
 
       - name: Update release body
         run: |
-          gh release edit "${TAG}" --add-note "Release ${TAG}\n\nBuild & Setup links:\n- Build: https://github.com/${{ github.repository }}/blob/main/README.md#build\n- Setup: https://github.com/${{ github.repository }}/blob/main/README.md#setup\n- Themes: https://github.com/${{ github.repository }}/blob/main/README.md#themes"
+          NOTES=$(printf "Release %s\n\nBuild & Setup links:\n- Build: https://github.com/%s/blob/main/README.md#build\n- Setup: https://github.com/%s/blob/main/README.md#setup\n- Themes: https://github.com/%s/blob/main/README.md#themes" "${TAG}" "${GITHUB_REPOSITORY}" "${GITHUB_REPOSITORY}" "${GITHUB_REPOSITORY}")
+          gh release edit "${TAG}" -n "$NOTES"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ env.TAG }}
