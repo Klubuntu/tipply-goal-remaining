@@ -162,7 +162,7 @@ const configPageHtml = `<!DOCTYPE html>
       box-sizing: border-box;
     }
     body.minimal {
-      background: #000;
+      background: #222;
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       min-height: 100vh;
@@ -252,23 +252,64 @@ const configPageHtml = `<!DOCTYPE html>
       margin-top: 6px;
       display: none;
     }
+    .header-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .language-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 4px;
+    }
+    .lang-btn {
+      padding: 6px 12px;
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 16px;
+      transition: all 0.2s;
+      opacity: 0.6;
+      font-weight: 500;
+    }
+    .lang-btn.active {
+      background: rgba(34, 197, 94, 0.3);
+      opacity: 1;
+      color: #22c55e;
+    }
+    .lang-btn:hover {
+      opacity: 0.8;
+    }
   </style>
 </head>
 <body class="minimal">
   <div class="config-container">
-    <h1>Konfiguracja</h1>
+    <div class="header-controls">
+      <h1 id="pageTitle">Konfiguracja</h1>
+      <div class="language-toggle">
+        <button type="button" class="lang-btn active" data-lang="pl">PL</button>
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+      </div>
+    </div>
     <form id="configForm">
       <div class="form-group">
-        <label for="goalUrl">URL celu Tipply</label>
+        <label for="goalUrl" id="labelGoalUrl">URL celu Tipply</label>
         <input type="url" id="goalUrl" name="goalUrl" placeholder="https://widgets.tipply.pl/TIPS_GOAL/..." required>
         <div class="error" id="goalUrlError"></div>
       </div>
       <div class="form-group">
-        <label for="refreshIntervalSeconds">Interwał odświeżania (sekundy)</label>
+        <label for="refreshIntervalSeconds" id="labelRefresh">Interwał odświeżania (sekundy)</label>
         <input type="number" id="refreshIntervalSeconds" name="refreshIntervalSeconds" min="1" max="3600" value="3" required>
       </div>
       <div class="form-group">
-        <label for="theme">Motyw</label>
+        <label for="theme" id="labelTheme">Motyw</label>
         <select id="theme" name="theme">
           <option value="dark">dark</option>
           <option value="minimal">minimal</option>
@@ -280,14 +321,70 @@ const configPageHtml = `<!DOCTYPE html>
         </select>
       </div>
       <div class="button-group">
-        <button type="submit" class="btn-save">Zapisz</button>
-        <button type="button" class="btn-cancel" onclick="window.location.href='/'">Anuluj</button>
+        <button type="submit" class="btn-save" id="btnSave">Zapisz</button>
+        <button type="button" class="btn-cancel" id="btnCancel" onclick="window.location.href='/'">Anuluj</button>
       </div>
       <div class="error" id="formError"></div>
-      <div class="success" id="formSuccess">Konfiguracja zapisana! Przekierowywanie...</div>
+      <div class="success" id="formSuccess" data-pl="Konfiguracja zapisana! Przekierowywanie..." data-en="Configuration saved! Redirecting...">Konfiguracja zapisana! Przekierowywanie...</div>
     </form>
   </div>
   <script>
+    const translations = {
+      pl: {
+        pageTitle: 'Konfiguracja',
+        labelGoalUrl: 'URL celu Tipply',
+        labelRefresh: 'Interwał odświeżania (sekundy)',
+        labelTheme: 'Motyw',
+        btnSave: 'Zapisz',
+        btnCancel: 'Anuluj',
+        successMsg: 'Konfiguracja zapisana! Przekierowywanie...',
+        errorMsg: 'Błąd zapisywania',
+        networkError: 'Błąd sieci: ',
+        errorLoadingConfig: 'Error loading config:'
+      },
+      en: {
+        pageTitle: 'Configuration',
+        labelGoalUrl: 'Tipply Goal URL',
+        labelRefresh: 'Refresh Interval (seconds)',
+        labelTheme: 'Theme',
+        btnSave: 'Save',
+        btnCancel: 'Cancel',
+        successMsg: 'Configuration saved! Redirecting...',
+        errorMsg: 'Save error',
+        networkError: 'Network error: ',
+        errorLoadingConfig: 'Error loading config:'
+      }
+    };
+
+    let currentLang = localStorage.getItem('language') || 'pl';
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('language', lang);
+      updatePageLanguage();
+      updateLanguageButtons();
+    }
+
+    function updatePageLanguage() {
+      document.getElementById('pageTitle').textContent = translations[currentLang].pageTitle;
+      document.getElementById('labelGoalUrl').textContent = translations[currentLang].labelGoalUrl;
+      document.getElementById('labelRefresh').textContent = translations[currentLang].labelRefresh;
+      document.getElementById('labelTheme').textContent = translations[currentLang].labelTheme;
+      document.getElementById('btnSave').textContent = translations[currentLang].btnSave;
+      document.getElementById('btnCancel').textContent = translations[currentLang].btnCancel;
+      document.getElementById('formSuccess').textContent = translations[currentLang].successMsg;
+    }
+
+    function updateLanguageButtons() {
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === currentLang);
+      });
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+    });
+
     document.body.className = localStorage.getItem('theme') || 'minimal';
     
     async function loadCurrentConfig() {
@@ -305,7 +402,7 @@ const configPageHtml = `<!DOCTYPE html>
           document.body.className = data.theme;
         }
       } catch (error) {
-        console.error('Error loading config:', error);
+        console.error(translations[currentLang].errorLoadingConfig, error);
       }
     }
     
@@ -329,7 +426,7 @@ const configPageHtml = `<!DOCTYPE html>
         
         if (!response.ok) {
           const error = await response.json();
-          formError.textContent = error.error || 'Błąd zapisywania';
+          formError.textContent = error.error || translations[currentLang].errorMsg;
           formError.style.display = 'block';
           return;
         }
@@ -337,7 +434,7 @@ const configPageHtml = `<!DOCTYPE html>
         formSuccess.style.display = 'block';
         setTimeout(() => window.location.href = '/', 1500);
       } catch (error) {
-        formError.textContent = 'Błąd sieci: ' + error.message;
+        formError.textContent = translations[currentLang].networkError + error.message;
         formError.style.display = 'block';
       }
     });
@@ -347,6 +444,8 @@ const configPageHtml = `<!DOCTYPE html>
       localStorage.setItem('theme', e.target.value);
     });
     
+    updatePageLanguage();
+    updateLanguageButtons();
     loadCurrentConfig();
   </script>
 </body>
