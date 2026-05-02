@@ -1,0 +1,77 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            build-cmd: pnpm run build:macos
+            artifact-name: tipply-gr-macos-x64
+          - os: macos-latest
+            build-cmd: pnpm run build:macos-arm64
+            artifact-name: tipply-gr-macos-arm64
+          - os: ubuntu-latest
+            build-cmd: pnpm run build:linux
+            artifact-name: tipply-gr-linux-x64
+          - os: windows-latest
+            build-cmd: pnpm run build:windows
+            artifact-name: tipply-gr-win-x64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install app dependencies
+        run: cd app && pnpm install
+
+      - name: Build standalone executable
+        run: ${{ matrix.build-cmd }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: app/dist/${{ matrix.artifact-name }}/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/*/tipply-gr-macos-x64/**
+            artifacts/*/tipply-gr-macos-arm64/**
+            artifacts/*/tipply-gr-linux-x64/**
+            artifacts/*/tipply-gr-win-x64/**
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
