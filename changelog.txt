@@ -1,0 +1,46 @@
+# Changelog
+
+## [1.0.1] - 2026-05-02
+
+### Added
+- Color-flash animation for amount display: green flash on increase, red flash on decrease
+- Smooth ease-in curve animation for number interpolation (350ms duration)
+- Extended animation duration (950ms total: 600ms interpolation + 350ms color flash)
+- Progress bar width transition with ease-in animation
+- Animation effects specifically for `#remaining` field (goal amount display)
+
+### Fixed
+- Reverted color change animation from progress percentage (now only animates amount field)
+- Improved animation performance and visual feedback for goal updates
+
+### Changed
+- Enhanced widget animation system for better user experience
+- Animation duration increased for smoother visual transitions
+
+---
+
+## [1.0.0] - 2026-05-02
+
+### Added
+- New `/config-page` endpoint for configuration management through web interface
+- Migration script (`scripts/migrate.js`) for database schema updates and data migrations
+- Initial animation effects for amount display (smooth transitions and visual feedback)
+- Update checker script (`scripts/checkUpdate.js`) for version management
+- Comprehensive build system with standalone executable support for macOS, Linux, and Windows
+
+### Fixed
+- Fixed standalone bundle configuration path handling during development and production builds
+- Corrected pkg build version dependency (now properly uses registry version 5.8.1)
+- Fixed data directory resolution for portable executable mode
+- Improved error handling in build process for all platforms
+- Fixed asset copying in standalone builds to ensure public files are properly included
+
+### Changed
+- Restructured build output to use consistent directory naming across platforms (tipply-gr-<platform>-<arch>)
+- Improved build script to automatically manage cleanup and configuration reset via optimize.sh
+- Enhanced project structure with dedicated scripts directory for maintenance tasks
+
+### Technical Details
+- Standalone builds now properly resolve config and public folders relative to executable location
+- Implemented proper data directory management for portable execution
+- Added support for ARM64 architecture on macOS alongside x64 builds
