@@ -34,11 +34,15 @@ jobs:
         run: |
           mkdir -p release
           for f in app/dist/tipply-gr-macos-*; do
-            base=$(basename "$f")
-            mkdir -p "release/${base}"
-            cp -r "$f" "release/${base}/"
-            (cd release && zip -r "${base}.zip" "${base}")
+            if [ -d "$f" ]; then
+              name=$(basename "$f")
+              exe="$f/$name"
+              if [ -f "$exe" ]; then
+                zip -j "release/${name}.zip" "$exe"
+              fi
+            fi
           done
+          ls -la release/
       - uses: actions/upload-artifact@v4
         with:
           name: tipply-gr-macos
@@ -64,11 +68,15 @@ jobs:
         run: |
           mkdir -p release
           for f in app/dist/tipply-gr-linux-*; do
-            base=$(basename "$f")
-            mkdir -p "release/${base}"
-            cp -r "$f" "release/${base}/"
-            (cd release && zip -r "${base}.zip" "${base}")
+            if [ -d "$f" ]; then
+              name=$(basename "$f")
+              exe="$f/$name"
+              if [ -f "$exe" ]; then
+                zip -j "release/${name}.zip" "$exe"
+              fi
+            fi
           done
+          ls -la release/
       - uses: actions/upload-artifact@v4
         with:
           name: tipply-gr-linux
@@ -91,22 +99,31 @@ jobs:
       - run: pnpm run build:windows
         working-directory: app
       - name: Package Windows artifacts (executables only)
-        shell: powershell
+        shell: pwsh
         run: |
-          $releaseDir = Join-Path $Env:GITHUB_WORKSPACE 'release'
+          $releaseDir = Join-Path (Get-Location) 'release'
           New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
-          Get-ChildItem -Path app/dist -Filter 'tipply-gr-win-*' | ForEach-Object {
-            $f = $_.FullName
-            $base = $_.Name
-            $dest = Join-Path $releaseDir $base
-            New-Item -ItemType Directory -Force -Path $dest | Out-Null
-            Copy-Item -Path $f -Destination $dest
-            $zip = Join-Path $releaseDir ($base + '.zip')
-            if (Test-Path $zip) { Remove-Item $zip }
-            Compress-Archive -Path (Join-Path $dest '*') -DestinationPath $zip
+          $appDistDir = Join-Path (Get-Location) 'app' 'dist'
+          Write-Host "App dist directory: $appDistDir"
+          $items = Get-ChildItem -Path $appDistDir -Filter 'tipply-gr-win-*' -Directory
+          Write-Host "Found directories: $($items | ForEach-Object { $_.Name })"
+          foreach ($item in $items) {
+            $name = $item.Name
+            $exe = Join-Path $item.FullName "$name.exe"
+            Write-Host "Looking for executable: $exe"
+            if (Test-Path $exe) {
+              $zipPath = Join-Path $releaseDir "$name.zip"
+              Write-Host "Creating zip: $zipPath"
+              Compress-Archive -Path $exe -DestinationPath $zipPath -Force
+              Write-Host "Created zip with size: $(Get-Item $zipPath).Length bytes"
+            } else {
+              Write-Host "Executable not found at: $exe"
+              Write-Host "Contents of $($item.FullName):"
+              Get-ChildItem -Path $item.FullName -Recurse | ForEach-Object { Write-Host $_.Name }
+            }
           }
-          Write-Host 'Created Windows release files:'
-          Get-ChildItem -Path $releaseDir -Filter '*.zip' -Recurse | ForEach-Object { Write-Host $_.FullName }
+          Write-Host 'Final release directory contents:'
+          Get-ChildItem -Path $releaseDir -Recurse | ForEach-Object { Write-Host $_.FullName }
       - uses: actions/upload-artifact@v4
         with:
           name: tipply-gr-windows
