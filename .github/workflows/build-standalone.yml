@@ -30,16 +30,13 @@ jobs:
         working-directory: app
       - run: pnpm run build:macos-arm64
         working-directory: app
-      - name: Package macOS artifacts (executables only)
+      - name: Package macOS artifacts (portable folder)
         run: |
           mkdir -p release
           for f in app/dist/tipply-gr-macos-*; do
             if [ -d "$f" ]; then
               name=$(basename "$f")
-              exe="$f/$name"
-              if [ -f "$exe" ]; then
-                zip -j "release/${name}.zip" "$exe"
-              fi
+              (cd app/dist && zip -r "../../release/${name}.zip" "$name" >/dev/null)
             fi
           done
           ls -la release/
@@ -64,16 +61,13 @@ jobs:
         working-directory: app
       - run: pnpm run build:linux
         working-directory: app
-      - name: Package Linux artifacts (executables only)
+      - name: Package Linux artifacts (portable folder)
         run: |
           mkdir -p release
           for f in app/dist/tipply-gr-linux-*; do
             if [ -d "$f" ]; then
               name=$(basename "$f")
-              exe="$f/$name"
-              if [ -f "$exe" ]; then
-                zip -j "release/${name}.zip" "$exe"
-              fi
+              (cd app/dist && zip -r "../../release/${name}.zip" "$name" >/dev/null)
             fi
           done
           ls -la release/
@@ -98,7 +92,7 @@ jobs:
         working-directory: app
       - run: pnpm run build:windows
         working-directory: app
-      - name: Package Windows artifacts (executables only)
+      - name: Package Windows artifacts (portable folder)
         shell: pwsh
         run: |
           $releaseDir = Join-Path (Get-Location) 'release'
@@ -109,18 +103,10 @@ jobs:
           Write-Host "Found directories: $($items | ForEach-Object { $_.Name })"
           foreach ($item in $items) {
             $name = $item.Name
-            $exe = Join-Path $item.FullName "$name.exe"
-            Write-Host "Looking for executable: $exe"
-            if (Test-Path $exe) {
-              $zipPath = Join-Path $releaseDir "$name.zip"
-              Write-Host "Creating zip: $zipPath"
-              Compress-Archive -Path $exe -DestinationPath $zipPath -Force
-              Write-Host "Created zip with size: $(Get-Item $zipPath).Length bytes"
-            } else {
-              Write-Host "Executable not found at: $exe"
-              Write-Host "Contents of $($item.FullName):"
-              Get-ChildItem -Path $item.FullName -Recurse | ForEach-Object { Write-Host $_.Name }
-            }
+            $zipPath = Join-Path $releaseDir "$name.zip"
+            Write-Host "Creating zip: $zipPath"
+            Compress-Archive -Path $item.FullName -DestinationPath $zipPath -Force
+            Write-Host "Created zip with size: $(Get-Item $zipPath).Length bytes"
           }
           Write-Host 'Final release directory contents:'
           Get-ChildItem -Path $releaseDir -Recurse | ForEach-Object { Write-Host $_.FullName }
