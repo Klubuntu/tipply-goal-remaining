@@ -1,5 +1,5 @@
 {
-  "goalUrl": "",
-  "refreshIntervalSeconds": 3,
-  "theme": "dark"
+  "goalUrl": "https://widgets.tipply.pl/TIPS_GOAL/123/GOAL/456",
+  "refreshIntervalSeconds": 5,
+  "theme": "minimal"
 }

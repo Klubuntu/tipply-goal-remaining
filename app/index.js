@@ -14,7 +14,7 @@ const configPath = path.join(dataDir, 'config.json');
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
 // Parse goalUrl to extract userId and goalId
-const goalUrl = (config.goalUrl || '').trim();
+let goalUrl = (config.goalUrl || '').trim();
 let userId = null;
 let goalId = null;
 let apiUrl = null;
@@ -33,8 +33,8 @@ if (goalUrl) {
   }
 }
 
-const refreshIntervalSeconds = config.refreshIntervalSeconds || 3;
-const theme = config.theme || 'dark';
+let refreshIntervalSeconds = config.refreshIntervalSeconds || 3;
+let theme = config.theme || 'dark';
 
 const indexHtml = `<!DOCTYPE html>
 <html lang="pl">
@@ -77,7 +77,7 @@ const scriptJs = [
   '    theme = config.theme;',
   '    document.body.className = theme;',
   '    if (!apiUrl) {',
-  "      document.getElementById('goal-title').textContent = config.configWarning || 'Uzupełnij config.json i ustaw goalUrl.';",
+  "      window.location.href = '/config-page';",
   '      return false;',
   '    }',
   '    return true;',
@@ -148,9 +148,264 @@ fastify.get('/script.js', async (request, reply) => {
   return reply.type('application/javascript; charset=utf-8').send(scriptJs);
 });
 
-// Route for config
+// Configuration page
+const configPageHtml = `<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Konfiguracja - Tipply Goal Remaining</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body.minimal {
+      background: #1a1a1a;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .config-container {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 40px;
+      width: 100%;
+      max-width: 500px;
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 25px;
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 8px;
+      opacity: 0.9;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 30px;
+    }
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-save {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      color: #000;
+    }
+    .btn-save:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    }
+    .btn-cancel {
+      background: rgba(156, 163, 175, 0.3);
+      color: #fff;
+      border: 1px solid rgba(156, 163, 175, 0.5);
+    }
+    .btn-cancel:hover {
+      background: rgba(156, 163, 175, 0.5);
+    }
+    .error {
+      color: #ef4444;
+      font-size: 12px;
+      margin-top: 6px;
+      display: none;
+    }
+    .success {
+      color: #22c55e;
+      font-size: 12px;
+      margin-top: 6px;
+      display: none;
+    }
+  </style>
+</head>
+<body class="minimal">
+  <div class="config-container">
+    <h1>Konfiguracja</h1>
+    <form id="configForm">
+      <div class="form-group">
+        <label for="goalUrl">URL celu Tipply</label>
+        <input type="url" id="goalUrl" name="goalUrl" placeholder="https://widgets.tipply.pl/TIPS_GOAL/..." required>
+        <div class="error" id="goalUrlError"></div>
+      </div>
+      <div class="form-group">
+        <label for="refreshIntervalSeconds">Interwał odświeżania (sekundy)</label>
+        <input type="number" id="refreshIntervalSeconds" name="refreshIntervalSeconds" min="1" max="3600" value="3" required>
+      </div>
+      <div class="form-group">
+        <label for="theme">Motyw</label>
+        <select id="theme" name="theme">
+          <option value="dark">dark</option>
+          <option value="minimal">minimal</option>
+          <option value="purple">purple</option>
+          <option value="blue">blue</option>
+          <option value="green">green</option>
+          <option value="red">red</option>
+          <option value="transparent">transparent</option>
+        </select>
+      </div>
+      <div class="button-group">
+        <button type="submit" class="btn-save">Zapisz</button>
+        <button type="button" class="btn-cancel" onclick="window.location.href='/'">Anuluj</button>
+      </div>
+      <div class="error" id="formError"></div>
+      <div class="success" id="formSuccess">Konfiguracja zapisana! Przekierowywanie...</div>
+    </form>
+  </div>
+  <script>
+    document.body.className = localStorage.getItem('theme') || 'minimal';
+    
+    async function loadCurrentConfig() {
+      try {
+        const response = await fetch('/config-data');
+        const data = await response.json();
+        if (data.goalUrl) {
+          document.getElementById('goalUrl').value = data.goalUrl;
+        }
+        if (data.refreshIntervalSeconds) {
+          document.getElementById('refreshIntervalSeconds').value = data.refreshIntervalSeconds;
+        }
+        if (data.theme) {
+          document.getElementById('theme').value = data.theme;
+          document.body.className = data.theme;
+        }
+      } catch (error) {
+        console.error('Error loading config:', error);
+      }
+    }
+    
+    document.getElementById('configForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formError = document.getElementById('formError');
+      const formSuccess = document.getElementById('formSuccess');
+      formError.style.display = 'none';
+      formSuccess.style.display = 'none';
+      
+      try {
+        const response = await fetch('/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            goalUrl: document.getElementById('goalUrl').value,
+            refreshIntervalSeconds: parseInt(document.getElementById('refreshIntervalSeconds').value),
+            theme: document.getElementById('theme').value,
+          }),
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          formError.textContent = error.error || 'Błąd zapisywania';
+          formError.style.display = 'block';
+          return;
+        }
+        
+        formSuccess.style.display = 'block';
+        setTimeout(() => window.location.href = '/', 1500);
+      } catch (error) {
+        formError.textContent = 'Błąd sieci: ' + error.message;
+        formError.style.display = 'block';
+      }
+    });
+    
+    document.getElementById('theme').addEventListener('change', (e) => {
+      document.body.className = e.target.value;
+      localStorage.setItem('theme', e.target.value);
+    });
+    
+    loadCurrentConfig();
+  </script>
+</body>
+</html>`;
+
+fastify.get('/config-page', async (request, reply) => {
+  return reply.type('text/html; charset=utf-8').send(configPageHtml);
+});
+
+// Route for config API (GET - returns current config)
 fastify.get('/config', async (request, reply) => {
   return { userId, goalId, apiUrl, refreshIntervalSeconds, theme, configWarning };
+});
+
+// Route for config data (GET - for config page to load current values)
+fastify.get('/config-data', async (request, reply) => {
+  return { goalUrl, refreshIntervalSeconds, theme };
+});
+
+// Route for config page (POST - saves new config)
+fastify.post('/config', async (request, reply) => {
+  try {
+    const { goalUrl: newGoalUrl, refreshIntervalSeconds: newInterval, theme: newTheme } = request.body;
+    
+    if (!newGoalUrl || !newGoalUrl.trim()) {
+      return reply.status(400).send({ error: 'goalUrl is required' });
+    }
+    
+    const newConfig = {
+      goalUrl: newGoalUrl.trim(),
+      refreshIntervalSeconds: Math.max(1, newInterval || 3),
+      theme: newTheme || 'dark',
+    };
+    
+    fs.writeFileSync(configPath, JSON.stringify(newConfig, null, 2) + '\n');
+    
+    // Reload module-level config
+    const updatedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    const newGoalUrlTrimmed = (updatedConfig.goalUrl || '').trim();
+    if (newGoalUrlTrimmed) {
+      try {
+        const url = new URL(newGoalUrlTrimmed);
+        const pathParts = url.pathname.split('/');
+        userId = pathParts[2];
+        goalId = pathParts[4];
+        apiUrl = `https://tipply.pl/api/widget/goal/${goalId}/${userId}`;
+        configWarning = '';
+      } catch (error) {
+        configWarning = 'Nieprawidłowy goalUrl w config.json.';
+      }
+    }
+    refreshIntervalSeconds = updatedConfig.refreshIntervalSeconds || 3;
+    theme = updatedConfig.theme || 'dark';
+    
+    return { success: true, message: 'Config updated' };
+  } catch (error) {
+    console.error('Error saving config:', error);
+    return reply.status(500).send({ error: 'Failed to save config' });
+  }
 });
 
 // Redirect not found to root
