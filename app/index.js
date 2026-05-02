@@ -90,6 +90,11 @@ if (goalUrl) {
 
 let refreshIntervalSeconds = config.refreshIntervalSeconds || 3;
 let theme = config.theme || 'dark';
+let cleanMode = Boolean(config.clean);
+
+function getBodyClassName() {
+  return [theme, cleanMode ? 'clean' : ''].filter(Boolean).join(' ');
+}
 
 const indexHtml = `<!DOCTYPE html>
 <html lang="pl">
@@ -100,7 +105,7 @@ const indexHtml = `<!DOCTYPE html>
   <link rel="stylesheet" href="/css/colors.css">
   <link rel="stylesheet" href="/css/goal.css">
 </head>
-<body>
+<body class="${getBodyClassName()}">
   <div class="container">
     <div class="title" id="goal-title">Ładowanie...</div>
     <div class="progress-container">
@@ -118,7 +123,7 @@ const indexHtml = `<!DOCTYPE html>
 const scriptJs = [
   '// Fetch and display goal data',
   '',
-  'let userId, goalId, apiUrl, refreshIntervalSeconds, theme;',
+  'let userId, goalId, apiUrl, refreshIntervalSeconds, theme, cleanMode = false;',
   'let intervalId;',
   'let prevPercentage = 0;',
   'let prevRemaining = 0;',
@@ -126,6 +131,14 @@ const scriptJs = [
   'function easeIn(t) { return t * t; }',
   'const BASE_ANIM_DURATION = 950;',
   'const COLOR_FLASH_DURATION = 350;',
+  '',
+  'function applyBodyClass() {',
+  "  document.body.className = [theme, cleanMode ? 'clean' : ''].filter(Boolean).join(' ');",
+  '}',
+  '',
+  'function formatCleanCurrency(value) {',
+  "  return `${new Intl.NumberFormat('pl-PL', { maximumFractionDigits: 0 }).format(Math.round(Number(value) || 0))} zł`;",
+  '}',
   '',
   'function animateNumber(el, start, end, decimals = 0, formatter = null, duration = BASE_ANIM_DURATION) {',
   '  start = Number(start) || 0;',
@@ -151,7 +164,8 @@ const scriptJs = [
   '    apiUrl = config.apiUrl;',
   '    refreshIntervalSeconds = config.refreshIntervalSeconds;',
   '    theme = config.theme;',
-  '    document.body.className = theme;',
+  '    cleanMode = Boolean(config.clean);',
+  '    applyBodyClass();',
   '    if (!apiUrl) {',
   "      window.location.href = '/config-page';",
   '      return false;',
@@ -207,7 +221,7 @@ const scriptJs = [
   '    }',
   '',
   '    animateNumber(progressTextEl, prevPercentage, percentage, 1, v => v.toFixed(1) + "%", BASE_ANIM_DURATION);',
-  '    animateNumber(remainingEl, prevRemaining, remaining, 2, v => `Brakuje: ${v.toFixed(2)} zł`, BASE_ANIM_DURATION);',
+  '    animateNumber(remainingEl, prevRemaining, remaining, cleanMode ? 0 : 2, v => cleanMode ? formatCleanCurrency(v) : `Brakuje: ${v.toFixed(2)} zł`, BASE_ANIM_DURATION);',
   '    prevPercentage = percentage;',
   '    prevRemaining = remaining;',
   '  } catch (error) {',
@@ -283,6 +297,35 @@ const configPageHtml = `<!DOCTYPE html>
     }
     .form-group {
       margin-bottom: 25px;
+    }
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+    }
+    .toggle-group .toggle-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .toggle-group label {
+      margin-bottom: 0;
+    }
+    .toggle-group .toggle-copy small {
+      opacity: 0.75;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .toggle-group input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: #22c55e;
+      flex: 0 0 auto;
     }
     label {
       display: block;
@@ -416,6 +459,13 @@ const configPageHtml = `<!DOCTYPE html>
           <option value="transparent">transparent</option>
         </select>
       </div>
+      <div class="form-group toggle-group">
+        <div class="toggle-copy">
+          <label for="clean" id="labelClean">Tryb clean</label>
+          <small id="cleanHint">Tytuł na górze, kwota na dole, bez paska postępu.</small>
+        </div>
+        <input type="checkbox" id="clean" name="clean">
+      </div>
       <div class="button-group">
         <button type="submit" class="btn-save" id="btnSave">Zapisz</button>
         <button type="button" class="btn-cancel" id="btnCancel" onclick="window.location.href='/'">Anuluj</button>
@@ -431,6 +481,8 @@ const configPageHtml = `<!DOCTYPE html>
         labelGoalUrl: 'URL celu Tipply',
         labelRefresh: 'Interwał odświeżania (sekundy)',
         labelTheme: 'Motyw',
+        labelClean: 'Tryb clean',
+        cleanHint: 'Tytuł na górze, kwota na dole, bez paska postępu.',
         btnSave: 'Zapisz',
         btnCancel: 'Anuluj',
         successMsg: 'Konfiguracja zapisana! Przekierowywanie...',
@@ -443,6 +495,8 @@ const configPageHtml = `<!DOCTYPE html>
         labelGoalUrl: 'Tipply Goal URL',
         labelRefresh: 'Refresh Interval (seconds)',
         labelTheme: 'Theme',
+        labelClean: 'Clean mode',
+        cleanHint: 'Title at the top, amount at the bottom, without the progress bar.',
         btnSave: 'Save',
         btnCancel: 'Cancel',
         successMsg: 'Configuration saved! Redirecting...',
@@ -466,6 +520,8 @@ const configPageHtml = `<!DOCTYPE html>
       document.getElementById('labelGoalUrl').textContent = translations[currentLang].labelGoalUrl;
       document.getElementById('labelRefresh').textContent = translations[currentLang].labelRefresh;
       document.getElementById('labelTheme').textContent = translations[currentLang].labelTheme;
+      document.getElementById('labelClean').textContent = translations[currentLang].labelClean;
+      document.getElementById('cleanHint').textContent = translations[currentLang].cleanHint;
       document.getElementById('btnSave').textContent = translations[currentLang].btnSave;
       document.getElementById('btnCancel').textContent = translations[currentLang].btnCancel;
       document.getElementById('formSuccess').textContent = translations[currentLang].successMsg;
@@ -497,6 +553,7 @@ const configPageHtml = `<!DOCTYPE html>
           document.getElementById('theme').value = data.theme;
           document.body.className = data.theme;
         }
+        document.getElementById('clean').checked = Boolean(data.clean);
       } catch (error) {
         console.error(translations[currentLang].errorLoadingConfig, error);
       }
@@ -517,6 +574,7 @@ const configPageHtml = `<!DOCTYPE html>
             goalUrl: document.getElementById('goalUrl').value,
             refreshIntervalSeconds: parseInt(document.getElementById('refreshIntervalSeconds').value),
             theme: document.getElementById('theme').value,
+            clean: document.getElementById('clean').checked,
           }),
         });
         
@@ -553,18 +611,18 @@ fastify.get('/config-page', async (request, reply) => {
 
 // Route for config API (GET - returns current config)
 fastify.get('/config', async (request, reply) => {
-  return { userId, goalId, apiUrl, refreshIntervalSeconds, theme, configWarning };
+  return { userId, goalId, apiUrl, refreshIntervalSeconds, theme, clean: cleanMode, configWarning };
 });
 
 // Route for config data (GET - for config page to load current values)
 fastify.get('/config-data', async (request, reply) => {
-  return { goalUrl, refreshIntervalSeconds, theme };
+  return { goalUrl, refreshIntervalSeconds, theme, clean: cleanMode };
 });
 
 // Route for config page (POST - saves new config)
 fastify.post('/config', async (request, reply) => {
   try {
-    const { goalUrl: newGoalUrl, refreshIntervalSeconds: newInterval, theme: newTheme } = request.body;
+    const { goalUrl: newGoalUrl, refreshIntervalSeconds: newInterval, theme: newTheme, clean: newClean } = request.body;
     
     if (!newGoalUrl || !newGoalUrl.trim()) {
       return reply.status(400).send({ error: 'goalUrl is required' });
@@ -574,6 +632,7 @@ fastify.post('/config', async (request, reply) => {
       goalUrl: newGoalUrl.trim(),
       refreshIntervalSeconds: Math.max(1, newInterval || 3),
       theme: newTheme || 'dark',
+      clean: Boolean(newClean),
     };
     
     fs.writeFileSync(configPath, JSON.stringify(newConfig, null, 2) + '\n');
@@ -601,6 +660,7 @@ fastify.post('/config', async (request, reply) => {
     }
     refreshIntervalSeconds = updatedConfig.refreshIntervalSeconds || 3;
     theme = updatedConfig.theme || 'dark';
+    cleanMode = Boolean(updatedConfig.clean);
     
     return { success: true, message: 'Config updated' };
   } catch (error) {

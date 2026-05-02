@@ -85,6 +85,62 @@ body:not(.purple):not(.dark):not(.transparent):not(.blue):not(.green):not(.red):
   opacity: 0.9;
 }
 
+body.clean .container {
+  min-height: 100vh;
+  width: 100%;
+  max-width: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  text-align: center;
+  position: relative;
+  display: block;
+}
+
+body.clean .progress-container {
+  display: none;
+}
+
+body.clean .title {
+  position: absolute;
+  top: clamp(36px, 11vh, 120px);
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  width: calc(100% - 80px);
+  text-align: center;
+  font-size: clamp(28px, 3vw, 44px);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.98);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.28), 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
+body.clean .remaining {
+  position: absolute;
+  left: 50%;
+  top: 20%;
+  bottom: auto;
+  transform: translateX(-50%);
+  margin: 0;
+  width: calc(100% - 80px);
+  text-align: center;
+  font-size: clamp(56px, 9vw, 96px);
+  font-weight: 900;
+  line-height: 0.95;
+  color: var(--accent);
+  text-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+body.clean #remaining {
+  opacity: 1;
+}
+
+body.clean .progress-text {
+  display: none;
+}
+
 /* transient flash states for increases/decreases */
 .remaining.flash-increase,
 #remaining.flash-increase {

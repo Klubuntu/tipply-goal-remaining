@@ -9,23 +9,27 @@ body {
   align-items: center;
   height: 100vh;
   overflow: hidden;
+  --accent: #22c55e;
 }
 
 /* Purple theme */
 body.purple {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --accent: #ff7fa1;
 }
 
 /* Dark theme (default) */
 body.dark {
   background: linear-gradient(135deg, #111318 0%, #1f2733 100%);
   color: #fff;
+  --accent: #6d8bd7;
 }
 
 /* Transparent theme */
 body.transparent {
   background: transparent;
   color: #000;
+  --accent: #2f8d78;
 }
 
 body.transparent .container {
@@ -42,22 +46,33 @@ body.transparent .title {
 /* Blue theme */
 body.blue {
   background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  --accent: #75d0ff;
 }
 
 /* Green theme */
 body.green {
   background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+  --accent: #a5ff8f;
 }
 
 /* Red theme */
 body.red {
   background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  --accent: #ff8f8f;
 }
 
 /* Minimal theme */
 body.minimal {
   background: #111;
   color: #fff;
+  --accent: #22c55e;
+}
+
+body.clean {
+  background: #fff;
+  color: #111;
+  align-items: stretch;
+  justify-content: stretch;
 }
 
 body.minimal .container {

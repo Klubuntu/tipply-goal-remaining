@@ -43,6 +43,7 @@ async function migrate(opts = {}) {
   config.colors = config.colors || {};
   config.fontFamilies = config.fontFamilies || [];
   config.fontFiles = config.fontFiles || [];
+  if (config.clean === undefined) config.clean = false;
 
   // Parse colors.css
   const colorsPath = path.join(cssDir, 'colors.css');
