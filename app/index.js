@@ -162,7 +162,7 @@ const configPageHtml = `<!DOCTYPE html>
       box-sizing: border-box;
     }
     body.minimal {
-      background: #1a1a1a;
+      background: #000;
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       min-height: 100vh;
@@ -172,13 +172,13 @@ const configPageHtml = `<!DOCTYPE html>
       padding: 20px;
     }
     .config-container {
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       padding: 40px;
       width: 100%;
       max-width: 500px;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(8px);
     }
     h1 {
       font-size: 24px;
