@@ -385,7 +385,8 @@ fastify.post('/config', async (request, reply) => {
     
     // Reload module-level config
     const updatedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    const newGoalUrlTrimmed = (updatedConfig.goalUrl || '').trim();
+    goalUrl = (updatedConfig.goalUrl || '').trim();
+    const newGoalUrlTrimmed = goalUrl;
     if (newGoalUrlTrimmed) {
       try {
         const url = new URL(newGoalUrlTrimmed);
@@ -397,6 +398,11 @@ fastify.post('/config', async (request, reply) => {
       } catch (error) {
         configWarning = 'Nieprawidłowy goalUrl w config.json.';
       }
+    } else {
+      userId = null;
+      goalId = null;
+      apiUrl = null;
+      configWarning = 'Uzupełnij config.json i ustaw goalUrl.';
     }
     refreshIntervalSeconds = updatedConfig.refreshIntervalSeconds || 3;
     theme = updatedConfig.theme || 'dark';
