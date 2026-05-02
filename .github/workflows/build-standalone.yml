@@ -171,7 +171,12 @@ jobs:
 
       - name: Update release body
         run: |
-          NOTES=$(printf "Release %s\n\nBuild & Setup links:\n- Build: https://github.com/%s/blob/main/README.md#build\n- Setup: https://github.com/%s/blob/main/README.md#setup\n- Themes: https://github.com/%s/blob/main/README.md#themes" "${TAG}" "${GITHUB_REPOSITORY}" "${GITHUB_REPOSITORY}" "${GITHUB_REPOSITORY}")
+          CHANGELOG=""
+          if [ -f "changelog.txt" ]; then
+            CHANGELOG=$(cat changelog.txt)
+          fi
+          
+          NOTES=$(printf "Release %s\n\nBuild & Setup links:\n\nBuild: https://github.com/%s/blob/main/README.md#build\nSetup: https://github.com/%s/blob/main/README.md#setup\nThemes: https://github.com/%s/blob/main/README.md#themes\n\n## Changelog\n\n%s" "${TAG}" "${GITHUB_REPOSITORY}" "${GITHUB_REPOSITORY}" "${GITHUB_REPOSITORY}" "${CHANGELOG}")
           gh release edit "${TAG}" -n "$NOTES"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
