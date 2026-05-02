@@ -27,17 +27,14 @@ jobs:
         working-directory: app
       - run: pnpm run build:macos-arm64
         working-directory: app
-      - name: Package macOS artifacts
+      - name: Package macOS artifacts (executables only)
         run: |
           mkdir -p release
           for f in app/dist/tipply-gr-macos-*; do
             base=$(basename "$f")
             mkdir -p "release/${base}"
             cp "$f" "release/${base}/"
-            cp config.json "release/${base}/" || true
-            cp -r public/css "release/${base}/css" || true
-            cp -r public/fonts "release/${base}/fonts" || true
-            (cd release && zip -r "${base}.zip" "${base}")
+            (cd release && zip -j "${base}.zip" "${base}/${base}")
           done
       - uses: actions/upload-artifact@v4
         with:
@@ -60,17 +57,14 @@ jobs:
         working-directory: app
       - run: pnpm run build:linux
         working-directory: app
-      - name: Package Linux artifacts
+      - name: Package Linux artifacts (executables only)
         run: |
           mkdir -p release
           for f in app/dist/tipply-gr-linux-*; do
             base=$(basename "$f")
             mkdir -p "release/${base}"
             cp "$f" "release/${base}/"
-            cp config.json "release/${base}/" || true
-            cp -r public/css "release/${base}/css" || true
-            cp -r public/fonts "release/${base}/fonts" || true
-            (cd release && zip -r "${base}.zip" "${base}")
+            (cd release && zip -j "${base}.zip" "${base}/${base}")
           done
       - uses: actions/upload-artifact@v4
         with:
@@ -93,7 +87,7 @@ jobs:
         working-directory: app
       - run: pnpm run build:windows
         working-directory: app
-      - name: Package Windows artifacts
+      - name: Package Windows artifacts (executables only)
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path release | Out-Null
@@ -103,12 +97,9 @@ jobs:
             $dest = Join-Path 'release' $base
             New-Item -ItemType Directory -Force -Path $dest | Out-Null
             Copy-Item -Path $f -Destination $dest
-            if (Test-Path config.json) { Copy-Item -Path config.json -Destination $dest -Force }
-            if (Test-Path public\css) { Copy-Item -Path public\css -Destination (Join-Path $dest 'css') -Recurse -Force }
-            if (Test-Path public\fonts) { Copy-Item -Path public\fonts -Destination (Join-Path $dest 'fonts') -Recurse -Force }
             $zip = Join-Path 'release' ($base + '.zip')
             if (Test-Path $zip) { Remove-Item $zip }
-            Compress-Archive -Path $dest -DestinationPath $zip
+            Compress-Archive -Path (Join-Path $dest '*') -DestinationPath $zip
           }
       - uses: actions/upload-artifact@v4
         with:
