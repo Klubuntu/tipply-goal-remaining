@@ -84,3 +84,15 @@ body:not(.purple):not(.dark):not(.transparent):not(.blue):not(.green):not(.red):
   margin-top: 20px;
   opacity: 0.9;
 }
+
+/* transient flash states for increases/decreases */
+.remaining.flash-increase,
+#remaining.flash-increase {
+  color: #22c55e !important;
+  transition: color 350ms ease-in !important;
+}
+.remaining.flash-decrease,
+#remaining.flash-decrease {
+  color: #ef4444 !important;
+  transition: color 350ms ease-in !important;
+}
