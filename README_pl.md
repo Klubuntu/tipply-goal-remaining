@@ -4,7 +4,7 @@ Prosty widget WWW pokazujący, ile brakuje do osiągnięcia celu Tipply, z autom
 
 ## Uruchamianie
 
-Możesz uruchomić Tipply Goal Remaining na dwa sposoby:
+Możesz uruchomić Tipply Goal Remaining na trzy sposoby:
 
 1. **Pobierz Gotowy Plik Wykonywalny**
    - Pobierz najnowszy plik dla twojej platformy z [Releases](../../releases)
@@ -15,7 +15,15 @@ Możesz uruchomić Tipply Goal Remaining na dwa sposoby:
      - Linux: `./tipply-gr-linux-x64`
      - Windows: `tipply-gr-win-x64.exe`
 
-2. **Zbuduj ze Źródła**
+2. **Uruchom serwer**
+   - **Windows**: Kliknij dwukrotnie `start_WIN.bat` albo uruchom `start_WIN.bat [--debug]` w Command Prompt
+   - **Linux/Mac**: Uruchom `./start_Linux_macOS.sh [--debug]` w terminalu
+   - Użyj `--debug`, aby włączyć szczegółowe logi
+   - Otwórz http://localhost:3785 w przeglądarce
+
+   > Serwer najpierw próbuje portu `3785`, potem wybiera dowolny wolny port.
+
+3. **Zbuduj ze Źródła**
    - Postępuj zgodnie z instrukcjami w sekcji [Build](#build), aby skompilować samodzielny plik na twoją platformę
    - Plik będzie dostępny w `app/dist/`
 
@@ -25,29 +33,6 @@ Możesz uruchomić Tipply Goal Remaining na dwa sposoby:
    - `goalUrl`: URL widgetu Tipply (domyślnie `""`; np. "https://widgets.tipply.pl/TIPS_GOAL/{user_id}/GOAL/{goal_id}")
    - `refreshIntervalSeconds`: Jak często odświeżać dane (domyślnie: 3 sekundy)
    - `theme`: Nazwa motywu (domyślnie: `"dark"`). Dostępne opcje są opisane w sekcji [Motywy](#motywy)
-
-2. Uruchom serwer:
-   - **Windows**: Kliknij dwukrotnie `start_WIN.bat` albo uruchom `start_WIN.bat [--debug]` w Command Prompt
-   - **Linux/Mac**: Uruchom `./start_Linux_macOS.sh [--debug]` w terminalu
-
-   Użyj `--debug`, aby włączyć szczegółowe logi
-
-3. Otwórz http://localhost:3785 w przeglądarce
-
-> Serwer najpierw próbuje portu `3785`, potem wybiera dowolny wolny port.
-
-## Struktura projektu
-
-- `config.json`: Konfiguracja użytkownika
-- `app/`: Kod aplikacji
-- `public/`: Statyczne pliki WWW (HTML, JS)
-- `public/css/`: Pliki CSS
-- `public/fonts/`: Własne pliki fontów
-- `start_WIN.bat` / `start_Linux_macOS.sh`: Skrypty startowe
-
-## Czcionki
-
-Domyślnie widget ładuje `public/css/fonts.css` z `public/css/goal.css`. Własne pliki fontów dodaj do `public/fonts/` i opisz w `public/css/fonts.css` za pomocą `@font-face`.
 
 ## Build
 
@@ -64,6 +49,19 @@ Z katalogu głównego uruchom:
 Każdy build tworzy katalog `dist/` w `app/`, z plikiem wykonywalnym oraz folderem `tipply-gr`, który zawiera `config.json`, `public/css/` i `public/fonts/`.
 
 HTML widgetu i skrypt klienta są wbudowane w plik wykonywalny, więc `index.html` oraz `script.js` nie są już rozpakowywane do outputu builda.
+
+## Struktura projektu
+
+- `config.json`: Konfiguracja użytkownika
+- `app/`: Kod aplikacji
+- `public/`: Statyczne pliki WWW (HTML, JS)
+- `public/css/`: Pliki CSS
+- `public/fonts/`: Własne pliki fontów
+- `start_WIN.bat` / `start_Linux_macOS.sh`: Skrypty startowe
+
+## Czcionki
+
+Domyślnie widget ładuje `public/css/fonts.css` z `public/css/goal.css`. Własne pliki fontów dodaj do `public/fonts/` i opisz w `public/css/fonts.css` za pomocą `@font-face`.
 
 ## Optimize
 
