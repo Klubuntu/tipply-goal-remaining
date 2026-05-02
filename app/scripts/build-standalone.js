@@ -27,15 +27,7 @@ execSync(`npx -y pkg@5.8.1 index.js --target ${target} --output "${outputFile}"`
 });
 
 const bundleDir = path.join(distDir, 'tipply-gr');
-fs.mkdirSync(path.join(bundleDir, 'public'), { recursive: true });
-fs.mkdirSync(path.join(bundleDir, 'public', 'fonts'), { recursive: true });
-
 fs.cpSync(path.join(projectDir, 'config.json'), path.join(bundleDir, 'config.json'));
-fs.cpSync(path.join(projectDir, 'public', 'css'), path.join(bundleDir, 'public', 'css'), { recursive: true });
-
-const fontsSource = path.join(projectDir, 'public', 'fonts');
-if (fs.existsSync(fontsSource)) {
-  fs.cpSync(fontsSource, path.join(bundleDir, 'public', 'fonts'), { recursive: true });
-}
+fs.cpSync(path.join(projectDir, 'public'), path.join(bundleDir, 'public'), { recursive: true });
 
 console.log(`Standalone build created in ${distDir}`);

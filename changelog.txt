@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.2] - 2026-05-02
+
+### Fixed
+- Standalone release archives now include the full `tipply-gr` folder with `public/` assets, so CSS and theme files load correctly after extraction
+- Standalone build output now copies the complete `public/` directory instead of only selected subfolders
+
+### Changed
+- Release packaging now preserves the portable folder layout expected by the executable
+
+---
+
 ## [1.0.1] - 2026-05-02
 
 ### Added
