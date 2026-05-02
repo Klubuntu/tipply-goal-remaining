@@ -155,14 +155,14 @@ const configPageHtml = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Konfiguracja - Tipply Goal Remaining</title>
+  <link rel="stylesheet" href="/css/colors.css">
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    body.minimal {
-      background: #222;
+    body {
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       min-height: 100vh;
@@ -289,7 +289,7 @@ const configPageHtml = `<!DOCTYPE html>
     }
   </style>
 </head>
-<body class="minimal">
+<body class="${theme}">
   <div class="config-container">
     <div class="header-controls">
       <h1 id="pageTitle">Konfiguracja</h1>
