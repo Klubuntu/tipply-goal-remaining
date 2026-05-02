@@ -32,6 +32,10 @@ fs.mkdirSync(path.join(bundleDir, 'public', 'fonts'), { recursive: true });
 
 fs.cpSync(path.join(projectDir, 'config.json'), path.join(bundleDir, 'config.json'));
 fs.cpSync(path.join(projectDir, 'public', 'css'), path.join(bundleDir, 'public', 'css'), { recursive: true });
-fs.cpSync(path.join(projectDir, 'public', 'fonts'), path.join(bundleDir, 'public', 'fonts'), { recursive: true });
+
+const fontsSource = path.join(projectDir, 'public', 'fonts');
+if (fs.existsSync(fontsSource)) {
+  fs.cpSync(fontsSource, path.join(bundleDir, 'public', 'fonts'), { recursive: true });
+}
 
 console.log(`Standalone build created in ${distDir}`);
