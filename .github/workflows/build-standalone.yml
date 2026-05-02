@@ -27,10 +27,22 @@ jobs:
         working-directory: app
       - run: pnpm run build:macos-arm64
         working-directory: app
+      - name: Package macOS artifacts
+        run: |
+          mkdir -p release
+          for f in app/dist/tipply-gr-macos-*; do
+            base=$(basename "$f")
+            mkdir -p "release/${base}"
+            cp "$f" "release/${base}/"
+            cp config.json "release/${base}/" || true
+            cp -r public/css "release/${base}/css" || true
+            cp -r public/fonts "release/${base}/fonts" || true
+            (cd release && zip -r "${base}.zip" "${base}")
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: tipply-gr-macos
-          path: app/dist/tipply-gr-macos-*
+          path: release/*.zip
 
   build-linux:
     name: Build Linux x64
@@ -48,10 +60,22 @@ jobs:
         working-directory: app
       - run: pnpm run build:linux
         working-directory: app
+      - name: Package Linux artifacts
+        run: |
+          mkdir -p release
+          for f in app/dist/tipply-gr-linux-*; do
+            base=$(basename "$f")
+            mkdir -p "release/${base}"
+            cp "$f" "release/${base}/"
+            cp config.json "release/${base}/" || true
+            cp -r public/css "release/${base}/css" || true
+            cp -r public/fonts "release/${base}/fonts" || true
+            (cd release && zip -r "${base}.zip" "${base}")
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: tipply-gr-linux
-          path: app/dist/tipply-gr-linux-*
+          path: release/*.zip
 
   build-windows:
     name: Build Windows x64
@@ -69,10 +93,27 @@ jobs:
         working-directory: app
       - run: pnpm run build:windows
         working-directory: app
+      - name: Package Windows artifacts
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path release | Out-Null
+          Get-ChildItem -Path app/dist -Filter 'tipply-gr-win-*' | ForEach-Object {
+            $f = $_.FullName
+            $base = $_.Name
+            $dest = Join-Path 'release' $base
+            New-Item -ItemType Directory -Force -Path $dest | Out-Null
+            Copy-Item -Path $f -Destination $dest
+            if (Test-Path config.json) { Copy-Item -Path config.json -Destination $dest -Force }
+            if (Test-Path public\css) { Copy-Item -Path public\css -Destination (Join-Path $dest 'css') -Recurse -Force }
+            if (Test-Path public\fonts) { Copy-Item -Path public\fonts -Destination (Join-Path $dest 'fonts') -Recurse -Force }
+            $zip = Join-Path 'release' ($base + '.zip')
+            if (Test-Path $zip) { Remove-Item $zip }
+            Compress-Archive -Path $dest -DestinationPath $zip
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: tipply-gr-windows
-          path: app/dist/tipply-gr-win-*
+          path: release/*.zip
 
   create-tag:
     name: Create Tag and Release
