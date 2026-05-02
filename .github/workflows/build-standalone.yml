@@ -75,6 +75,51 @@ jobs:
           path: app/dist/tipply-gr-win-*
 
   create-tag:
+    name: Create Tag and Release
+    needs: [build-macos, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version tag
+        id: set_tag
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "TAG=v${VERSION}" >> $GITHUB_ENV
+          if ! git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag "v${VERSION}"
+            git push origin "v${VERSION}"
+          fi
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.TAG }}
+          name: ${{ env.TAG }}
+          files: |
+            artifacts/**
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update release body
+        run: |
+          gh release edit "${TAG}" --add-note "Release ${TAG}\n\nBuild & Setup links:\n- Build: https://github.com/${{ github.repository }}/blob/main/README.md#build\n- Setup: https://github.com/${{ github.repository }}/blob/main/README.md#setup\n- Themes: https://github.com/${{ github.repository }}/blob/main/README.md#themes"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ env.TAG }}
+
+  create-tag:
     name: Create Release Tag
     needs: [build-macos, build-linux, build-windows]
     runs-on: ubuntu-latest
