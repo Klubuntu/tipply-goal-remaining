@@ -1,10 +1,14 @@
 {
   "name": "tipply-goal-remaining",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "app/index.js",
   "scripts": {
     "start": "node app/index.js",
+    "migrate": "node scripts/migrate.js",
+    "update": "node scripts/checkUpdate.js",
+    "run:migrate": "pnpm run migrate",
+    "run:update": "pnpm run update",
     "build:macos": "pnpm --dir app run build:macos",
     "build:macos-arm64": "pnpm --dir app run build:macos-arm64",
     "build:linux": "pnpm --dir app run build:linux",
