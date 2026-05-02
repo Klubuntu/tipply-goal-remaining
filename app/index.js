@@ -9,9 +9,64 @@ const dataDir = process.pkg
   ? path.join(path.dirname(process.execPath), 'tipply-gr')
   : path.join(__dirname, '..');
 
-// Read config
+// Read config (ensure exists)
 const configPath = path.join(dataDir, 'config.json');
-const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+let config = {};
+try {
+  if (fs.existsSync(configPath)) {
+    config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  } else {
+    // create minimal config if missing
+    config = {};
+    fs.mkdirSync(path.dirname(configPath), { recursive: true });
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
+  }
+} catch (e) {
+  console.error('Failed to read config.json:', e);
+  process.exit(1);
+}
+
+// Run migrations automatically when packaged or when config looks older
+try {
+  const migrate = require('../scripts/migrate');
+  const pkg = require('../package.json');
+  const cfgVer = config.migratedVersion || '0.0.0';
+  if (compareVersions(cfgVer, pkg.version) < 0) {
+    console.log('Older config detected, running migration...');
+    migrate({ dataDir, pkgVersion: pkg.version })
+      .then(res => {
+        if (res && res.ok) {
+          try { config = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch (e) {}
+          console.log('Migration finished');
+        } else {
+          console.warn('Migration reported issues:', res && res.error);
+        }
+      })
+      .catch(err => console.warn('Migration failed:', err));
+  }
+  if (process.pkg) {
+    const checkUpdate = require('../scripts/checkUpdate');
+    const apply = process.argv.includes('--update');
+    checkUpdate({ currentVersion: pkg.version, apply }).then(r => {
+      if (r && r.upToDate === false) {
+        if (apply && r.path) {
+          console.log('Release downloaded to:', r.path);
+        } else {
+          console.log(`Newer release available: ${r.latest}. Run the program with --update to fetch it.`);
+        }
+      }
+    }).catch(() => {});
+  }
+} catch (e) {
+  // non-fatal
+}
+
+function compareVersions(a, b) {
+  const pa = (a||'0.0.0').replace(/^v/, '').split('.').map(n=>parseInt(n)||0);
+  const pb = (b||'0.0.0').replace(/^v/, '').split('.').map(n=>parseInt(n)||0);
+  for (let i=0;i<3;i++) if (pa[i] !== pb[i]) return pa[i] - pb[i];
+  return 0;
+}
 
 // Parse goalUrl to extract userId and goalId
 let goalUrl = (config.goalUrl || '').trim();
@@ -65,6 +120,27 @@ const scriptJs = [
   '',
   'let userId, goalId, apiUrl, refreshIntervalSeconds, theme;',
   'let intervalId;',
+  'let prevPercentage = 0;',
+  'let prevRemaining = 0;',
+  '',
+  'function easeIn(t) { return t * t; }',
+  'const BASE_ANIM_DURATION = 950;',
+  'const COLOR_FLASH_DURATION = 350;',
+  '',
+  'function animateNumber(el, start, end, decimals = 0, formatter = null, duration = BASE_ANIM_DURATION) {',
+  '  start = Number(start) || 0;',
+  '  end = Number(end) || 0;',
+  '  const diff = end - start;',
+  '  const startTime = performance.now();',
+  '  function step(now) {',
+  '    const t = Math.min(1, (now - startTime) / duration);',
+  '    const eased = easeIn(t);',
+  '    const current = start + diff * eased;',
+  '    el.textContent = formatter ? formatter(current) : current.toFixed(decimals);',
+  '    if (t < 1) requestAnimationFrame(step);',
+  '  }',
+  '  requestAnimationFrame(step);',
+  '}',
   '',
   'async function loadConfig() {',
   '  try {',
@@ -101,7 +177,7 @@ const scriptJs = [
   "      throw new Error('Missing required data in API response');",
   '    }',
   '',
-  '    const title = config.title;',
+  "    const title = config.title;",
   '    const target = config.target / 100;',
   '    const initialValue = config.initial_value / 100;',
   '    const amount = stats.amount / 100;',
@@ -111,9 +187,29 @@ const scriptJs = [
   '    const percentage = (collected / target) * 100;',
   '',
   "    document.getElementById('goal-title').textContent = title;",
-  "    document.getElementById('progress-fill').style.width = `" + '${Math.min(percentage, 100)}' + "%`;",
-  "    document.getElementById('progress-text').textContent = `" + '${percentage.toFixed(1)}' + "%`;",
-  "    document.getElementById('remaining').textContent = `Brakuje: " + '${remaining.toFixed(2)}' + " zł`;",
+  '    const progressFill = document.getElementById("progress-fill");',
+  '    progressFill.style.transition = `width ${BASE_ANIM_DURATION}ms ease-in`;',
+  '    progressFill.style.width = `${Math.min(percentage,100)}%`;',
+  '    const progressTextEl = document.getElementById("progress-text");',
+  '    const remainingEl = document.getElementById("remaining");',
+  '',
+  '    const pctDelta = percentage - prevPercentage;',
+  '    const remDelta = remaining - prevRemaining;',
+  '    if (pctDelta !== 0) {',
+  "      const cls = pctDelta > 0 ? 'flash-increase' : 'flash-decrease';",
+  '      progressTextEl.classList.add(cls);',
+  '      setTimeout(() => { progressTextEl.classList.remove(cls); }, COLOR_FLASH_DURATION + 100);',
+  '    }',
+  '    if (remDelta !== 0) {',
+  "      const cls = remDelta < 0 ? 'flash-increase' : 'flash-decrease';",
+  '      remainingEl.classList.add(cls);',
+  '      setTimeout(() => { remainingEl.classList.remove(cls); }, COLOR_FLASH_DURATION + 100);',
+  '    }',
+  '',
+  '    animateNumber(progressTextEl, prevPercentage, percentage, 1, v => v.toFixed(1) + "%", BASE_ANIM_DURATION);',
+  '    animateNumber(remainingEl, prevRemaining, remaining, 2, v => `Brakuje: ${v.toFixed(2)} zł`, BASE_ANIM_DURATION);',
+  '    prevPercentage = percentage;',
+  '    prevRemaining = remaining;',
   '  } catch (error) {',
   "    console.error('Error fetching goal data:', error);",
   "    document.getElementById('goal-title').textContent = 'Błąd ładowania danych';",
