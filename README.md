@@ -4,6 +4,23 @@ A simple web widget that displays the remaining amount to reach a Tipply goal, w
 
 [Wersja Polska](README_pl.md)
 
+## Run
+
+You can run Tipply Goal Remaining in two ways:
+
+1. **Download Pre-built Executable**
+   - Download the latest executable for your platform from [Releases](../../releases)
+   - Extract the archive and navigate to the `tipply-gr` folder
+   - Edit `config.json` with your goal URL and preferences
+   - Run the executable:
+     - macOS: `./tipply-gr-macos-x64` or `./tipply-gr-macos-arm64` (for Apple Silicon)
+     - Linux: `./tipply-gr-linux-x64`
+     - Windows: `tipply-gr-win-x64.exe`
+
+2. **Build from Source**
+   - Follow the instructions in the [Build](#build) section to compile a standalone executable for your platform
+   - The compiled executable will be available in `app/dist/`
+
 ## Setup
 
 1. Edit `config.json` to set your goal URL, refresh interval (in seconds), and theme

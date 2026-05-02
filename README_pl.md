@@ -2,6 +2,23 @@
 
 Prosty widget WWW pokazujący, ile brakuje do osiągnięcia celu Tipply, z automatycznym odświeżaniem.
 
+## Uruchamianie
+
+Możesz uruchomić Tipply Goal Remaining na dwa sposoby:
+
+1. **Pobierz Gotowy Plik Wykonywalny**
+   - Pobierz najnowszy plik dla twojej platformy z [Releases](../../releases)
+   - Rozpakuj archiwum i wejdź do folderu `tipply-gr`
+   - Edytuj `config.json` - ustaw URL celu i preferencje
+   - Uruchom plik:
+     - macOS: `./tipply-gr-macos-x64` lub `./tipply-gr-macos-arm64` (dla Apple Silicon)
+     - Linux: `./tipply-gr-linux-x64`
+     - Windows: `tipply-gr-win-x64.exe`
+
+2. **Zbuduj ze Źródła**
+   - Postępuj zgodnie z instrukcjami w sekcji [Build](#build), aby skompilować samodzielny plik na twoją platformę
+   - Plik będzie dostępny w `app/dist/`
+
 ## Konfiguracja
 
 1. Edytuj `config.json`, aby ustawić URL celu, interwał odświeżania i motyw.
