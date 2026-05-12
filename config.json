@@ -1,7 +1,7 @@
 {
   "goalUrl": "",
-  "refreshIntervalSeconds": 5,
+  "refreshIntervalSeconds": 3,
   "theme": "dark",
   "customGoalName": "",
-  "clean": true
+  "clean": false
 }
