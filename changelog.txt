@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.3] - 2026-05-12
+
+### Added
+- Custom goal name override in `config.json` and the settings page, so the widget can display a user-defined title instead of the Tipply goal name
+- Settings form field for managing the optional custom goal name alongside the other widget options
+
+### Changed
+- Configuration loading and saving now persist `customGoalName` through the config API and local config file
+
+---
+
 ## [1.0.2] - 2026-05-02
 
 ### Fixed
