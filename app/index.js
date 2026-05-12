@@ -91,6 +91,7 @@ if (goalUrl) {
 let refreshIntervalSeconds = config.refreshIntervalSeconds || 3;
 let theme = config.theme || 'dark';
 let cleanMode = Boolean(config.clean);
+let customGoalName = config.customGoalName || '';
 
 function getBodyClassName() {
   return [theme, cleanMode ? 'clean' : ''].filter(Boolean).join(' ');
@@ -123,7 +124,7 @@ const indexHtml = `<!DOCTYPE html>
 const scriptJs = [
   '// Fetch and display goal data',
   '',
-  'let userId, goalId, apiUrl, refreshIntervalSeconds, theme, cleanMode = false;',
+  'let userId, goalId, apiUrl, refreshIntervalSeconds, theme, customGoalName, cleanMode = false;',
   'let intervalId;',
   'let prevPercentage = 0;',
   'let prevRemaining = 0;',
@@ -164,6 +165,7 @@ const scriptJs = [
   '    apiUrl = config.apiUrl;',
   '    refreshIntervalSeconds = config.refreshIntervalSeconds;',
   '    theme = config.theme;',
+  '    customGoalName = config.customGoalName;',
   '    cleanMode = Boolean(config.clean);',
   '    applyBodyClass();',
   '    if (!apiUrl) {',
@@ -191,7 +193,7 @@ const scriptJs = [
   "      throw new Error('Missing required data in API response');",
   '    }',
   '',
-  "    const title = config.title;",
+  "    const title = customGoalName || config.title;",
   '    const target = config.target / 100;',
   '    const initialValue = config.initial_value / 100;',
   '    const amount = stats.amount / 100;',
@@ -459,6 +461,10 @@ const configPageHtml = `<!DOCTYPE html>
           <option value="transparent">transparent</option>
         </select>
       </div>
+      <div class="form-group">
+        <label for="customGoalName" id="labelCustomGoalName">Własna nazwa celu (opcjonalnie)</label>
+        <input type="text" id="customGoalName" name="customGoalName" placeholder="Zostawić puste, aby używać nazwa z Tipply">
+      </div>
       <div class="form-group toggle-group">
         <div class="toggle-copy">
           <label for="clean" id="labelClean">Tryb clean</label>
@@ -481,6 +487,7 @@ const configPageHtml = `<!DOCTYPE html>
         labelGoalUrl: 'URL celu Tipply',
         labelRefresh: 'Interwał odświeżania (sekundy)',
         labelTheme: 'Motyw',
+        labelCustomGoalName: 'Własna nazwa celu (opcjonalnie)',
         labelClean: 'Tryb clean',
         cleanHint: 'Tytuł na górze, kwota na dole, bez paska postępu.',
         btnSave: 'Zapisz',
@@ -495,6 +502,7 @@ const configPageHtml = `<!DOCTYPE html>
         labelGoalUrl: 'Tipply Goal URL',
         labelRefresh: 'Refresh Interval (seconds)',
         labelTheme: 'Theme',
+        labelCustomGoalName: 'Custom goal name (optional)',
         labelClean: 'Clean mode',
         cleanHint: 'Title at the top, amount at the bottom, without the progress bar.',
         btnSave: 'Save',
@@ -520,6 +528,7 @@ const configPageHtml = `<!DOCTYPE html>
       document.getElementById('labelGoalUrl').textContent = translations[currentLang].labelGoalUrl;
       document.getElementById('labelRefresh').textContent = translations[currentLang].labelRefresh;
       document.getElementById('labelTheme').textContent = translations[currentLang].labelTheme;
+      document.getElementById('labelCustomGoalName').textContent = translations[currentLang].labelCustomGoalName;
       document.getElementById('labelClean').textContent = translations[currentLang].labelClean;
       document.getElementById('cleanHint').textContent = translations[currentLang].cleanHint;
       document.getElementById('btnSave').textContent = translations[currentLang].btnSave;
@@ -553,6 +562,9 @@ const configPageHtml = `<!DOCTYPE html>
           document.getElementById('theme').value = data.theme;
           document.body.className = data.theme;
         }
+        if (data.customGoalName) {
+          document.getElementById('customGoalName').value = data.customGoalName;
+        }
         document.getElementById('clean').checked = Boolean(data.clean);
       } catch (error) {
         console.error(translations[currentLang].errorLoadingConfig, error);
@@ -574,6 +586,7 @@ const configPageHtml = `<!DOCTYPE html>
             goalUrl: document.getElementById('goalUrl').value,
             refreshIntervalSeconds: parseInt(document.getElementById('refreshIntervalSeconds').value),
             theme: document.getElementById('theme').value,
+            customGoalName: document.getElementById('customGoalName').value,
             clean: document.getElementById('clean').checked,
           }),
         });
@@ -611,18 +624,18 @@ fastify.get('/config-page', async (request, reply) => {
 
 // Route for config API (GET - returns current config)
 fastify.get('/config', async (request, reply) => {
-  return { userId, goalId, apiUrl, refreshIntervalSeconds, theme, clean: cleanMode, configWarning };
+  return { userId, goalId, apiUrl, refreshIntervalSeconds, theme, customGoalName, clean: cleanMode, configWarning };
 });
 
 // Route for config data (GET - for config page to load current values)
 fastify.get('/config-data', async (request, reply) => {
-  return { goalUrl, refreshIntervalSeconds, theme, clean: cleanMode };
+  return { goalUrl, refreshIntervalSeconds, theme, customGoalName, clean: cleanMode };
 });
 
 // Route for config page (POST - saves new config)
 fastify.post('/config', async (request, reply) => {
   try {
-    const { goalUrl: newGoalUrl, refreshIntervalSeconds: newInterval, theme: newTheme, clean: newClean } = request.body;
+    const { goalUrl: newGoalUrl, refreshIntervalSeconds: newInterval, theme: newTheme, customGoalName: newCustomName, clean: newClean } = request.body;
     
     if (!newGoalUrl || !newGoalUrl.trim()) {
       return reply.status(400).send({ error: 'goalUrl is required' });
@@ -632,6 +645,7 @@ fastify.post('/config', async (request, reply) => {
       goalUrl: newGoalUrl.trim(),
       refreshIntervalSeconds: Math.max(1, newInterval || 3),
       theme: newTheme || 'dark',
+      customGoalName: (newCustomName || '').trim(),
       clean: Boolean(newClean),
     };
     
@@ -660,6 +674,7 @@ fastify.post('/config', async (request, reply) => {
     }
     refreshIntervalSeconds = updatedConfig.refreshIntervalSeconds || 3;
     theme = updatedConfig.theme || 'dark';
+    customGoalName = updatedConfig.customGoalName || '';
     cleanMode = Boolean(updatedConfig.clean);
     
     return { success: true, message: 'Config updated' };
